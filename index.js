@@ -4,10 +4,18 @@ const mongoose = require("mongoose");
 const cors = require("cors"); 
 const messageRoutes = require("./routes/ContactRoute")
 
-
+const helmet = require("helmet");
 const app = express();
 app.use(cors()); 
 app.use(express.json());
+app.use(helmet());
+
+const rateLimit = require("express-rate-limit");
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 10 
+});
+app.use(limiter);
 
 
 
