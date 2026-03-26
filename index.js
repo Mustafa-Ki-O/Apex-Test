@@ -15,9 +15,10 @@ mongoose.connect(process.env.MONGO_URL)
   .catch(err => console.log(err));
 
 const messageSchema = new mongoose.Schema({
-  name: String,
+  fullname: String,
   email: String,
-  subject: String
+  subject: String,
+  message: String
 });
 
 const Message = mongoose.model("Message", messageSchema);
