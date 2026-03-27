@@ -3,6 +3,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors"); 
 const messageRoutes = require("./routes/ContactRoute")
+const loginRoutes = require("./routes/LoginRoute")
+
 
 const helmet = require("helmet");
 const app = express();
@@ -25,6 +27,7 @@ mongoose.connect(process.env.MONGO_URL)
 
 
 app.use("/api/messages", messageRoutes);
+app.use("/api/login", loginRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

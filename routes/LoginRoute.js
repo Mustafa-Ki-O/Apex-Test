@@ -2,16 +2,39 @@ const express = require("express");
 const router = express.Router();
 const Login = require("../models/login");
 
-router.post("/", async (req,res) => {
+router.post("/", async (req, res) => {
     try {
-        const msg = new Login(req.body);
-        await msg.save();
+        const { fullname, password } = req.body;
+
+
+        const user = await Login.findOne({ fullname: fullname });
+
+
+        if (!user) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "بيانات الدخول غير صحيحة" 
+            });
+        }
+
+      
+        if (user.password !== password) {
+            return res.status(401).json({ 
+                success: true, 
+                isAuth: false,
+                message: "كلمة المرور خطأ" 
+            });
+        }
+
+      
         res.status(200).json({
             success: true,
-            message: "Successfully posted the message"
+            isAuth: true,
+            message: "تم التحقق بنجاح ... مرحبا"
         });
+
     } catch (err) {
-      res.status(500).json({ success: false, error: "Failed" });
+        res.status(500).json({ success: false, error: "خطأ في السيرفر" });
     }
 });
 
