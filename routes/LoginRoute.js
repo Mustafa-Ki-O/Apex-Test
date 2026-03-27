@@ -4,10 +4,6 @@ const Login = require("../models/login");
 
 router.post("/", async (req, res) => {
 
-      const allUsers = await Login.find({}); 
-       console.log("المستخدمون في القاعدة حالياً:", allUsers);
-       console.log("الاسم الذي تحاول البحث عنه:", req.body.fullname);
-       
     try {
         const { fullname, password } = req.body;
 
