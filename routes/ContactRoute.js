@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Message = require("../models/ContactMsg");
+const verifyToken = require("../authMiddleware"); 
 
-router.post("/", async (req,res) => {
+// all
+router.post("/", async (req, res) => {
     try {
         const msg = new Message(req.body);
         await msg.save();
@@ -11,13 +13,18 @@ router.post("/", async (req,res) => {
             message: "Successfully posted the message"
         });
     } catch (err) {
-      res.status(500).json({ success: false, error: "Failed" });
+        res.status(500).json({ success: false, error: "Failed" });
     }
 });
 
-router.get("/", async (req,res) => {
-    const data = await Message.find();
-    res.json(data);
+// Admin ==> middleware
+router.get("/", verifyToken, async (req, res) => {
+    try {
+        const data = await Message.find();
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ success: false, error: "حدث خطأ أثناء جلب البيانات" });
+    }
 });
 
 module.exports = router;
