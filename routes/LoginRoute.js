@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Login = require("../models/login");
+const jwt = require("jsonwebtoken");
+
 
 router.post("/", async (req, res) => {
 
@@ -27,12 +29,17 @@ router.post("/", async (req, res) => {
             });
         }
 
-      
+        const token = jwt.sign(
+          { id: user._id, role: "admin" }, 
+          "SECRET_KEY_123", // مفتاح سري خاص بك
+          { expiresIn: "30d" } // مدة الصلاحية
+        );
         res.status(200).json({
             success: true,
-            isAuth: true,
+            token: token,
             message: "تم التحقق بنجاح ... مرحبا"
         });
+
 
     } catch (err) {
         res.status(500).json({ success: false, error: "خطأ في السيرفر" });
