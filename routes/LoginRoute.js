@@ -31,7 +31,7 @@ router.post("/", async (req, res) => {
 
         const token = jwt.sign(
           { id: user._id, role: "admin" }, 
-          "SECRET_KEY_123", // مفتاح سري خاص بك
+          process.env.JWT_SECRET, // مفتاح سري خاص بك
           { expiresIn: "30d" } // مدة الصلاحية
         );
         res.status(200).json({
