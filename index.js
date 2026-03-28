@@ -33,7 +33,7 @@ app.use("/api/career",careerRoutes);
 const verifyToken = require("./authMiddleware");
 
 
-app.get("/verify-auth", verifyToken, (req, res) => {
+app.get("/api/verify-auth", verifyToken, (req, res) => {
 
     res.status(200).json({ 
         success: true, 
