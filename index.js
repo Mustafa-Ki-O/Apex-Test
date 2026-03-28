@@ -30,5 +30,17 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/career",careerRoutes);
 
+const verifyToken = require("./authMiddleware");
+
+
+app.get("/verify-auth", verifyToken, (req, res) => {
+
+    res.status(200).json({ 
+        success: true, 
+        message: "التوكن صالح",
+        user: req.user 
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
