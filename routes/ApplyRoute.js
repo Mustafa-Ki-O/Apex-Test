@@ -72,32 +72,30 @@ router.get("/", verifyToken, async (req, res) => {
     try {
         const careers = await Career.find();
 
-        const dataWithSignedUrls = await Promise.all(
-            careers.map(async (item) => {
-                const itemObj = item.toObject();
-                
-                // إذا كان الرابط مخزن قديماً كرابط كامل، نرجعه كما هو
-                if (itemObj.cv && itemObj.cv.startsWith('http')) {
-                    return itemObj;
-                }
+        
+        const supabaseUrl = process.env.SUPABASE_URL.replace(/\/$/, "");
+        const storageBaseUrl = `${supabaseUrl}/storage/v1/object/public/careers/`;
 
-                // إذا كان المسار يبدأ بـ uploads/ (الكود الجديد)
-                if (itemObj.cv && itemObj.cv.startsWith('uploads/')) {
-                    const { data, error } = await supabase.storage
-                        .from('careers')
-                        .createSignedUrl(itemObj.cv, 900);
+        const dataWithUrls = careers.map((item) => {
+            const itemObj = item.toObject();
 
-                    return {
-                        ...itemObj,
-                        cv: data ? data.signedUrl : itemObj.cv
-                    };
-                }
-
+           
+            if (itemObj.cv && itemObj.cv.startsWith('http')) {
                 return itemObj;
-            })
-        );
+            }
 
-        res.json(dataWithSignedUrls);
+          
+            if (itemObj.cv && itemObj.cv.startsWith('uploads/')) {
+                return {
+                    ...itemObj,
+                    cv: `${storageBaseUrl}${itemObj.cv}`
+                };
+            }
+
+            return itemObj;
+        });
+
+        res.json(dataWithUrls);
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
