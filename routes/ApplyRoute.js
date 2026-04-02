@@ -70,8 +70,28 @@ router.post("/", upload.single("cv"), async (req, res) => {
 // Admin ==> middleware
 router.get("/", verifyToken, async (req, res) => {
     try {
-        const data = await Career.find();
-        res.json(data);
+        // 1. جلب كل البيانات من المونغو
+        const careers = await Career.find();
+
+        // 2. استخدام Promise.all لمعالجة كل الطلبات مع بعضها (Async)
+        const dataWithSignedUrls = await Promise.all(
+            careers.map(async (item) => {
+                // توليد الرابط الموقع لكل CV بناءً على المسار المخزن (item.cv)
+                const { data, error } = await supabase.storage
+                    .from('careers')
+                    .createSignedUrl(item.cv, 900); // صالح لـ 15 دقيقة
+
+                // بنرجع كائن جديد فيه كل البيانات + الرابط الجديد
+                return {
+                    ...item._doc, // فك بيانات المونغو الأصلية
+                    cv: data ? data.signedUrl : item.cv // إذا فشل السوبابيس بنرجع المسار الأصلي كـ fallback
+                };
+            })
+        );
+
+        // 3. إرسال المصفوفة الجديدة اللي فيها الروابط الشغالة
+        res.json(dataWithSignedUrls);
+
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
