@@ -70,28 +70,34 @@ router.post("/", upload.single("cv"), async (req, res) => {
 // Admin ==> middleware
 router.get("/", verifyToken, async (req, res) => {
     try {
-        // 1. جلب كل البيانات من المونغو
         const careers = await Career.find();
 
-        // 2. استخدام Promise.all لمعالجة كل الطلبات مع بعضها (Async)
         const dataWithSignedUrls = await Promise.all(
             careers.map(async (item) => {
-                // توليد الرابط الموقع لكل CV بناءً على المسار المخزن (item.cv)
-                const { data, error } = await supabase.storage
-                    .from('careers')
-                    .createSignedUrl(item.cv, 900); // صالح لـ 15 دقيقة
+                const itemObj = item.toObject();
+                
+                // إذا كان الرابط مخزن قديماً كرابط كامل، نرجعه كما هو
+                if (itemObj.cv && itemObj.cv.startsWith('http')) {
+                    return itemObj;
+                }
 
-                // بنرجع كائن جديد فيه كل البيانات + الرابط الجديد
-                return {
-                    ...item._doc, // فك بيانات المونغو الأصلية
-                    cv: data ? data.signedUrl : item.cv // إذا فشل السوبابيس بنرجع المسار الأصلي كـ fallback
-                };
+                // إذا كان المسار يبدأ بـ uploads/ (الكود الجديد)
+                if (itemObj.cv && itemObj.cv.startsWith('uploads/')) {
+                    const { data, error } = await supabase.storage
+                        .from('careers')
+                        .createSignedUrl(itemObj.cv, 900);
+
+                    return {
+                        ...itemObj,
+                        cv: data ? data.signedUrl : itemObj.cv
+                    };
+                }
+
+                return itemObj;
             })
         );
 
-        // 3. إرسال المصفوفة الجديدة اللي فيها الروابط الشغالة
         res.json(dataWithSignedUrls);
-
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
